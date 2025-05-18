@@ -1,0 +1,329 @@
+open mysql comand prompt 
+1. Database Schema Creation
+->CREATE DATABASE hospital_management;   //for creating database
+
+->show databases;   //to check available databases names
+
+->USE hospital_management;               //for using particular database
+
+Tables Structure:
+
+-> create tables
+-- Patients table
+->CREATE TABLE patients (
+    patient_id INT  PRIMARY KEY,
+    first_name VARCHAR(50) ,
+    last_name VARCHAR(50) ,
+    dob DATE,
+    gender ENUM('Male', 'Female', 'Other'),
+    blood_type ENUM('A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'),
+    phone VARCHAR(15),
+    address TEXT
+);
+
+-> desc patients; ///to see structure of patients
++------------+-------------------------------------------------+------+-----+---------+-------+
+| Field      | Type                                            | Null | Key | Default | Extra |
++------------+-------------------------------------------------+------+-----+---------+-------+
+| patient_id | int                                             | NO   | PRI | NULL    |       |
+| first_name | varchar(50)                                     | YES  |     | NULL    |       |
+| last_name  | varchar(50)                                     | YES  |     | NULL    |       |
+| dob        | date                                            | YES  |     | NULL    |       |
+| gender     | enum('Male','Female','Other')                   | YES  |     | NULL    |       |
+| blood_type | enum('A+','A-','B+','B-','AB+','AB-','O+','O-') | YES  |     | NULL    |       |
+| phone      | varchar(15)                                     | YES  |     | NULL    |       |
+| address    | text                                            | YES  |     | NULL    |       |
++------------+-------------------------------------------------+------+-----+---------+-------+
+
+-- Doctors table
+->CREATE TABLE doctors (
+    doctor_id INT PRIMARY KEY,
+    first_name VARCHAR(50) ,
+    last_name VARCHAR(50),
+    specialization VARCHAR(100),
+    phone VARCHAR(15),
+    email VARCHAR(100),
+    joining_date DATE,
+    salary DECIMAL(10,2),
+);
+-> desc doctors;
++----------------+---------------+------+-----+---------+-------+
+| Field          | Type          | Null | Key | Default | Extra |
++----------------+---------------+------+-----+---------+-------+
+| doctor_id      | int           | NO   | PRI | NULL    |       |
+| first_name     | varchar(50)   | YES  |     | NULL    |       |
+| last_name      | varchar(50)   | YES  |     | NULL    |       |
+| specialization | varchar(100)  | YES  |     | NULL    |       |
+| phone          | varchar(15)   | YES  |     | NULL    |       |
+| email          | varchar(100)  | YES  |     | NULL    |       |
+| joining_date   | date          | YES  |     | NULL    |       |
+| salary         | decimal(10,2) | YES  |     | NULL    |       |
++----------------+---------------+------+-----+---------+-------+
+
+-- Departments table
+->CREATE TABLE departments (
+    dept_id INT  PRIMARY KEY,
+    dept_name VARCHAR(100),
+    location VARCHAR(100),
+    head_doctor_id INT,
+    FOREIGN KEY (head_doctor_id) REFERENCES doctors(doctor_id)
+);
+->  desc departments;
++----------------+--------------+------+-----+---------+-------+
+| Field          | Type         | Null | Key | Default | Extra |
++----------------+--------------+------+-----+---------+-------+
+| dept_id        | int          | NO   | PRI | NULL    |       |
+| dept_name      | varchar(100) | YES  |     | NULL    |       |
+| location       | varchar(100) | YES  |     | NULL    |       |
+| head_doctor_id | int          | YES  | MUL | NULL    |       |
++----------------+--------------+------+-----+---------+-------+
+
+-- Appointments table
+->CREATE TABLE appointments (
+    appointment_id INT  PRIMARY KEY,
+    patient_id INT,
+    doctor_id INT,
+    appointment_date DATETIME,
+    status ENUM('Scheduled', 'Completed', 'Cancelled', 'No-Show') DEFAULT 'Scheduled',
+    purpose TEXT,
+    FOREIGN KEY (patient_id) REFERENCES patients(patient_id),
+    FOREIGN KEY (doctor_id) REFERENCES doctors(doctor_id)
+);
+-> desc  appointments;
++------------------+-----------------------------------------------------+------+-----+-----------+-------+
+| Field            | Type                                                | Null | Key | Default   | Extra |
++------------------+-----------------------------------------------------+------+-----+-----------+-------+
+| appointment_id   | int                                                 | NO   | PRI | NULL      |       |
+| patient_id       | int                                                 | YES  | MUL | NULL      |       |
+| doctor_id        | int                                                 | YES  | MUL | NULL      |       |
+| appointment_date | datetime                                            | YES  |     | NULL      |       |
+| status           | enum('Scheduled','Completed','Cancelled','No-Show') | YES  |     | Scheduled |       |
+| purpose          | text                                                | YES  |     | NULL      |       |
++------------------+-----------------------------------------------------+------+-----+-----------+-------+
+
+-- Medical records table
+->CREATE TABLE medical_records (
+    record_id INT  PRIMARY KEY,
+    patient_id INT,
+    doctor_id INT,
+    diagnosis TEXT,
+    treatment TEXT,
+    prescription TEXT,
+    record_date DATETIME,
+    FOREIGN KEY (patient_id) REFERENCES patients(patient_id),
+    FOREIGN KEY (doctor_id) REFERENCES doctors(doctor_id)
+);
+-> desc medical_records;
++--------------+----------+------+-----+---------+-------+
+| Field        | Type     | Null | Key | Default | Extra |
++--------------+----------+------+-----+---------+-------+
+| record_id    | int      | NO   | PRI | NULL    |       |
+| patient_id   | int      | YES  | MUL | NULL    |       |
+| doctor_id    | int      | YES  | MUL | NULL    |       |
+| diagnosis    | text     | YES  |     | NULL    |       |
+| treatment    | text     | YES  |     | NULL    |       |
+| prescription | text     | YES  |     | NULL    |       |
+| record_date  | datetime | YES  |     | NULL    |       |
++--------------+----------+------+-----+---------+-------+
+
+-- Billing table
+->CREATE TABLE billing (
+    bill_id INT  PRIMARY KEY,
+    patient_id INT,
+    appointment_id INT,
+    total_amount DECIMAL(10,2),
+    paid_amount DECIMAL(10,2) DEFAULT 0,
+    balance DECIMAL(10,2) GENERATED ALWAYS AS (total_amount - paid_amount) STORED,
+    billing_date DATE,
+    due_date DATE,
+    status ENUM('Paid', 'Unpaid', 'Partial') DEFAULT 'Unpaid',
+    FOREIGN KEY (patient_id) REFERENCES patients(patient_id),
+    FOREIGN KEY (appointment_id) REFERENCES appointments(appointment_id)
+);
+
+ ->desc billing;
++----------------+---------------------------------+------+-----+---------+------------------+
+| Field          | Type                            | Null | Key | Default | Extra            |
++----------------+---------------------------------+------+-----+---------+------------------+
+| bill_id        | int                             | NO   | PRI | NULL    |                  |
+| patient_id     | int                             | YES  | MUL | NULL    |                  |
+| appointment_id | int                             | YES  | MUL | NULL    |                  |
+| total_amount   | decimal(10,2)                   | YES  |     | NULL    |                  |
+| paid_amount    | decimal(10,2)                   | YES  |     | 0.00    |                  |
+| balance        | decimal(10,2)                   | YES  |     | NULL    | STORED GENERATED |
+| billing_date   | date                            | YES  |     | NULL    |                  |
+| due_date       | date                            | YES  |     | NULL    |                  |
+| status         | enum('Paid','Unpaid','Partial') | YES  |     | Unpaid  |                  |
++----------------+---------------------------------+------+-----+---------+-
+
+2. Inserting Sample Data
+/// Inserting Sample Data
+
+-- Insert doctors
+INSERT INTO doctors (doctor_id,first_name, last_name, specialization, phone, email, joining_date, salary)
+VALUES 
+(1,'Sragvi', 'reddy', 'Cardiology', '555-0101', 's.johnson@hospital.com', '2015-06-15', 185000.00),
+(2,'sushma', 'reddy', 'Neurology', '555-0102', 'm.chen@hospital.com', '2018-03-22', 165000.00),
+(3,'vikram', 'reddy', 'Pediatrics', '555-0103', 'p.patel@hospital.com', '2019-11-10', 155000.00);
+
+
+-> select * from doctors;  //to check table result
++-----------+------------+-----------+----------------+----------+------------------------+--------------+-----------+
+| doctor_id | first_name | last_name | specialization | phone    | email                  | joining_date | salary    |
++-----------+------------+-----------+----------------+----------+------------------------+--------------+-----------+
+|         1 | Sragvi     | reddy     | Cardiology     | 555-0101 | s.johnson@hospital.com | 2015-06-15   | 185000.00 |
+|         2 | sushma     | reddy     | Neurology      | 555-0102 | m.chen@hospital.com    | 2018-03-22   | 165000.00 |
+|         3 | vikram     | reddy     | Pediatrics     | 555-0103 | p.patel@hospital.com   | 2019-11-10   | 155000.00 |
++-----------+------------+-----------+----------------+----------+------------------------+--------------+-----------+
+-- Insert departments
+INSERT INTO departments VALUES
+(1,'Cardiology', 'Floor 3, West Wing', 1),
+(2,'Neurology', 'Floor 2, East Wing', 2),
+(3,'Pediatrics', 'Floor 1, North Wing', 3);
+
+->
+mysql> select * from departments;
++---------+------------+---------------------+----------------+
+| dept_id | dept_name  | location            | head_doctor_id |
++---------+------------+---------------------+----------------+
+|       1 | Cardiology | Floor 3, West Wing  |              1 |
+|       2 | Neurology  | Floor 2, East Wing  |              2 |
+|       3 | Pediatrics | Floor 1, North Wing |              3 |
++---------+------------+---------------------+----------------+
+
+-- Insert patients
+INSERT INTO patients VALUES
+(1,'siri', 'reddy', '1980-05-15', 'feMale', 'A+', '555-0201', '123 Main St, Anytown'),
+(2,'varnik', 'reddy', '1992-11-22', 'male', 'B-', '555-0202', '456 Oak Ave, Somewhere'),
+(3,'swesha', 'gangidi', '1975-03-08', 'feMale', 'O+', '555-0203', '789 Pine Rd, Nowhere');
+
+-> select * from patients;
++------------+------------+-----------+------------+--------+------------+----------+------------------------+
+| patient_id | first_name | last_name | dob        | gender | blood_type | phone    | address                |
++------------+------------+-----------+------------+--------+------------+----------+------------------------+
+|          1 | siri       | reddy     | 1980-05-15 | Female | A+         | 555-0201 | 123 Main St, Anytown   |
+|          2 | varnik     | reddy     | 1992-11-22 | Male   | B-         | 555-0202 | 456 Oak Ave, Somewhere |
+|          3 | swesha     | gangidi   | 1975-03-08 | Female | O+         | 555-0203 | 789 Pine Rd, Nowhere   |
++------------+------------+-----------+------------+--------+------------+--
+
+-- Insert appointments
+INSERT INTO appointments VALUES
+(1,1, 1, '2023-06-15 09:00:00', 'Completed', 'Annual heart checkup'),
+(2,2, 3, '2023-06-16 10:30:00', 'Scheduled', 'Child vaccination'),
+(3,3, 2, '2023-06-14 14:00:00', 'Completed', 'Migraine consultation');
+
+-> select* from appointments;
++----------------+------------+-----------+---------------------+-----------+-----------------------+
+| appointment_id | patient_id | doctor_id | appointment_date    | status    | purpose               |
++----------------+------------+-----------+---------------------+-----------+-----------------------+
+|              1 |          1 |         1 | 2023-06-15 09:00:00 | Completed | Annual heart checkup  |
+|              2 |          2 |         3 | 2023-06-16 10:30:00 | Scheduled | Child vaccination     |
+|              3 |          3 |         2 | 2023-06-14 14:00:00 | Completed | Migraine consultation |
++----------------+------------+-----------+---------------------+-----------+-----------------------+
+
+-- Insert medical records
+INSERT INTO medical_records VALUES
+(1,1, 1, 'Normal blood pressure, slightly elevated cholesterol', 'Recommended dietary changes', 'Atorvastatin 20mg once daily','2023-06-15 09:00:00'),
+(2,3, 2, 'Chronic migraine', 'Prescribed medication and stress management', 'Sumatriptan 50mg as needed','2023-06-15 09:00:00');
+
+-> select *from medical_records;
++-----------+------------+-----------+------------------------------------------------------+---------------------------------------------+------------------------------+---------------------+
+| record_id | patient_id | doctor_id | diagnosis                                            | treatment                                   | prescription                 | record_date         |
++-----------+------------+-----------+------------------------------------------------------+---------------------------------------------+------------------------------+---------------------+
+|         1 |          1 |         1 | Normal blood pressure, slightly elevated cholesterol | Recommended dietary changes                 | Atorvastatin 20mg once daily | 2023-06-15 09:00:00 |
+|         2 |          3 |         2 | Chronic migraine                                     | Prescribed medication and stress management | Sumatriptan 50mg as needed   | 2023-06-15 09:00:00 |
++-----------+------------+-----------+------------------------------------------------------+---------------------------------------------+-------------
+
+///select option
+
+->select* from doctors;
+
+->  SELECT first_name, last_name,  specialization FROM doctors;    //TO HAVE FEW COLUMNS FROM A TABLE
+
+->SELECT d.dept_name, COUNT(*) AS doctor_count
+FROM doctors doc
+JOIN departments d ON doc.doctor_id = d.head_doctor_id
+GROUP BY d.dept_name;
+
+3)//UPDATE OPTION
+
+-- Update doctor's specialization
+->UPDATE doctors SET specialization = 'Pediatric Neurology' 
+WHERE doctor_id = 3;
+
+-- Reschedule an appointment
+->UPDATE appointments SET appointment_date = '2023-06-17 11:00:00'
+WHERE appointment_id = 2;
+
+-- Mark bill as paid
+->UPDATE billing SET paid_amount = total_amount, status = 'Paid'
+WHERE bill_id = 1;
+
+
+
+4)
+DELETE Operations:
+-- Cancel an appointment
+->DELETE FROM appointments 
+WHERE appointment_id = 3 AND status = 'Scheduled';
+
+-- Inactivate a doctor (soft delete)
+->UPDATE doctors SET is_active = FALSE
+WHERE doctor_id = 3;
+
+5) create view operation   /// here u can select few columns from certain tables and create your own view new table
+
+CREATE VIEW patient_history AS
+SELECT p.patient_id, p.first_name, p.last_name, 
+       mr.diagnosis, mr.treatment, mr.record_date,
+       CONCAT(d.first_name, ' ', d.last_name) AS doctor_name
+FROM patients p
+JOIN medical_records mr ON p.patient_id = mr.patient_id
+JOIN doctors d ON mr.doctor_id = d.doctor_id;
+
+6) procedure operation // is a collection of precompiled sql statmenst inside the database
+
+DELIMITER //
+CREATE PROCEDURE register_patient(
+    IN p_first_name VARCHAR(50),
+    IN p_last_name VARCHAR(50),
+    IN p_dob DATE,
+    IN p_gender ENUM('Male', 'Female', 'Other'),
+    IN p_blood_type ENUM('A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'),
+    IN p_phone VARCHAR(15),
+    IN p_address TEXT
+)
+BEGIN
+    INSERT INTO patients (first_name, last_name, dob, gender, blood_type, phone, address)
+    VALUES (p_first_name, p_last_name, p_dob, p_gender, p_blood_type, p_phone, p_address);
+    
+    SELECT LAST_INSERT_ID() AS new_patient_id;
+END //
+DELIMITER ;
+
+7) trigger // set of actions that run automatically
+REATE TABLE appointment_audit (
+    audit_id INT AUTO_INCREMENT PRIMARY KEY,
+    appointment_id INT,
+    old_status VARCHAR(20),
+    new_status VARCHAR(20),
+    changed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    changed_by VARCHAR(50)
+);
+
+DELIMITER //
+CREATE TRIGGER before_appointment_update
+BEFORE UPDATE ON appointments
+FOR EACH ROW
+BEGIN
+    IF NEW.status != OLD.status THEN
+        INSERT INTO appointment_audit (appointment_id, old_status, new_status, changed_by)
+        VALUES (NEW.appointment_id, OLD.status, NEW.status, CURRENT_USER());
+    END IF;
+END //
+DELIMITER ;
+
+
+
+
+
