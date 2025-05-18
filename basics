@@ -1,0 +1,31 @@
+basic syntaxes
+
+altering adding column
+-> atlter table [table_name] add column_name datatype[size];
+
+droping a table
+->drop table table_name;
+
+truncate a table
+-> truncate table_name;
+
+rename table 
+-> alter table table_name rename to new_table_name;
+
+rename column
+->ALTER TABLE table_name
+CHANGE COLUMN old_column_name new_column_name datatype[size];
+
+update value in table
+-> update table_name set column =value1 where condition = ;
+queries
+1)sum
+select sum(column_name) as total_coloumn_name from table_name;
+2)avg
+select avg(column_name) as total_coloumn_name from table_name;
+3)min
+select min(column_name) as total_coloumn_name from table_name;
+4)max
+select max(column_name) as total_coloumn_name from table_name;
+count
+select count(*) as total_name from table_name;
